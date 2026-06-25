@@ -1,1 +1,199 @@
-const express = require('express');\nconst axios = require('axios');\nconst morgan = require('morgan');\nconst { v4: uuidv4 } = require('uuid');\nrequire('dotenv').config();\n\nconst app = express();\nconst PORT = process.env.PORT || 3000;\n\n// Middleware\napp.use(morgan('combined'));\napp.use(express.json());\n\n// In-memory store for automation logs (replace with DB in production)\nconst automationLogs = [];\nconst workflowStates = {};\n\n// ============================================\n// 1. WEBHOOK ENDPOINT - Receive data from n8n\n// ============================================\napp.post('/webhook/automation', (req, res) => {\n  try {\n    const logId = uuidv4();\n    const timestamp = new Date();\n\n    console.log('📬 Received n8n webhook:', req.body);\n\n    const log = {\n      id: logId,\n      timestamp,\n      source: 'n8n_webhook',\n      data: req.body,\n      status: 'received'\n    };\n\n    automationLogs.push(log);\n\n    // Process the automation\n    const result = processAutomation(req.body, logId);\n\n    res.json({\n      success: true,\n      logId,\n      message: 'Automation processed',\n      result\n    });\n  } catch (error) {\n    console.error('❌ Webhook error:', error);\n    res.status(500).json({ success: false, error: error.message });\n  }\n});\n\n// ============================================\n// 2. TRIGGER N8N WORKFLOW\n// ============================================\napp.post('/api/trigger-workflow', async (req, res) => {\n  try {\n    const { workflowId, data } = req.body;\n\n    if (!workflowId) {\n      return res.status(400).json({ error: 'workflowId required' });\n    }\n\n    console.log(`🚀 Triggering n8n workflow: ${workflowId}`);\n\n    const result = await triggerN8nWorkflow(workflowId, data || {});\n\n    res.json({\n      success: true,\n      message: 'Workflow triggered',\n      result\n    });\n  } catch (error) {\n    console.error('❌ Workflow trigger error:', error.message);\n    res.status(500).json({\n      success: false,\n      error: error.message\n    });\n  }\n});\n\n// ============================================\n// 3. GET AUTOMATION LOGS\n// ============================================\napp.get('/api/logs', (req, res) => {\n  res.json({\n    total: automationLogs.length,\n    logs: automationLogs\n  });\n});\n\n// ============================================\n// 4. GET WORKFLOW STATUS\n// ============================================\napp.get('/api/workflow-status/:workflowId', (req, res) => {\n  const { workflowId } = req.params;\n  const status = workflowStates[workflowId] || 'not_found';\n\n  res.json({\n    workflowId,\n    status,\n    lastUpdate: new Date()\n  });\n});\n\n// ============================================\n// 5. HEALTH CHECK\n// ============================================\napp.get('/health', (req, res) => {\n  res.json({\n    status: 'healthy',\n    timestamp: new Date(),\n    uptime: process.uptime()\n  });\n});\n\n// ============================================\n// HELPER FUNCTIONS\n// ============================================\n\n/**\n * Trigger n8n workflow via API\n */\nasync function triggerN8nWorkflow(workflowId, data) {\n  const n8nUrl = process.env.N8N_URL || 'http://localhost:5678';\n  const apiKey = process.env.N8N_API_KEY;\n\n  const url = `${n8nUrl}/api/v1/workflows/${workflowId}/execute`;\n\n  console.log(`Calling: ${url}`);\n\n  try {\n    const response = await axios.post(url, data, {\n      headers: apiKey ? { 'X-N8N-API-KEY': apiKey } : {},\n      timeout: 30000\n    });\n    return response.data;\n  } catch (error) {\n    if (error.response?.status === 404) {\n      throw new Error(`Workflow ${workflowId} not found in n8n`);\n    }\n    throw error;\n  }\n}\n\n/**\n * Process automation data\n */\nfunction processAutomation(data, logId) {\n  console.log('⚙️ Processing automation:', data);\n\n  // Example: Extract and transform data\n  const processed = {\n    id: logId,\n    originalData: data,\n    processedAt: new Date(),\n    transformations: {\n      dataCount: Object.keys(data).length,\n      hasTimestamp: !!data.timestamp,\n      status: 'processed'\n    }\n  };\n\n  // Store workflow state\n  if (data.workflowId) {\n    workflowStates[data.workflowId] = 'completed';\n  }\n\n  return processed;\n}\n\n// ============================================\n// ERROR HANDLING\n// ============================================\napp.use((err, req, res, next) => {\n  console.error('❌ Unhandled error:', err);\n  res.status(500).json({\n    success: false,\n    error: err.message\n  });\n});\n\n// ============================================\n// START SERVER\n// ============================================\napp.listen(PORT, () => {\n  console.log(`\n✅ n8n POC Server running on http://localhost:${PORT}\n`);\n  console.log('Available endpoints:');\n  console.log('  POST   /webhook/automation       - Receive n8n webhook data');\n  console.log('  POST   /api/trigger-workflow     - Trigger n8n workflow');\n  console.log('  GET    /api/logs                 - View automation logs');\n  console.log('  GET    /api/workflow-status/:id  - Check workflow status');\n  console.log('  GET    /health                   - Health check');\n  console.log('');\n});\n\nmodule.exports = app;\n
+const express = require('express');
+const axios = require('axios');
+const morgan = require('morgan');
+const { v4: uuidv4 } = require('uuid');
+require('dotenv').config();
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Middleware
+app.use(morgan('combined'));
+app.use(express.json());
+
+// In-memory store for automation logs (replace with DB in production)
+const automationLogs = [];
+const workflowStates = {};
+
+// ============================================
+// 1. WEBHOOK ENDPOINT - Receive data from n8n
+// ============================================
+app.post('/webhook/automation', (req, res) => {
+  try {
+    const logId = uuidv4();
+    const timestamp = new Date();
+
+    console.log('📬 Received n8n webhook:', req.body);
+
+    const log = {
+      id: logId,
+      timestamp,
+      source: 'n8n_webhook',
+      data: req.body,
+      status: 'received'
+    };
+
+    automationLogs.push(log);
+
+    // Process the automation
+    const result = processAutomation(req.body, logId);
+
+    res.json({
+      success: true,
+      logId,
+      message: 'Automation processed',
+      result
+    });
+  } catch (error) {
+    console.error('❌ Webhook error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ============================================
+// 2. TRIGGER N8N WORKFLOW
+// ============================================
+app.post('/api/trigger-workflow', async (req, res) => {
+  try {
+    const { workflowId, data } = req.body;
+
+    if (!workflowId) {
+      return res.status(400).json({ error: 'workflowId required' });
+    }
+
+    console.log(`🚀 Triggering n8n workflow: ${workflowId}`);
+
+    const result = await triggerN8nWorkflow(workflowId, data || {});
+
+    res.json({
+      success: true,
+      message: 'Workflow triggered',
+      result
+    });
+  } catch (error) {
+    console.error('❌ Workflow trigger error:', error.message);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// ============================================
+// 3. GET AUTOMATION LOGS
+// ============================================
+app.get('/api/logs', (req, res) => {
+  res.json({
+    total: automationLogs.length,
+    logs: automationLogs
+  });
+});
+
+// ============================================
+// 4. GET WORKFLOW STATUS
+// ============================================
+app.get('/api/workflow-status/:workflowId', (req, res) => {
+  const { workflowId } = req.params;
+  const status = workflowStates[workflowId] || 'not_found';
+
+  res.json({
+    workflowId,
+    status,
+    lastUpdate: new Date()
+  });
+});
+
+// ============================================
+// 5. HEALTH CHECK
+// ============================================
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'healthy',
+    timestamp: new Date(),
+    uptime: process.uptime()
+  });
+});
+
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+/**
+ * Trigger n8n workflow via API
+ */
+async function triggerN8nWorkflow(workflowId, data) {
+  const n8nUrl = process.env.N8N_URL || 'http://localhost:5678';
+  const apiKey = process.env.N8N_API_KEY;
+
+  const url = `${n8nUrl}/api/v1/workflows/${workflowId}/execute`;
+
+  console.log(`Calling: ${url}`);
+
+  try {
+    const response = await axios.post(url, data, {
+      headers: apiKey ? { 'X-N8N-API-KEY': apiKey } : {},
+      timeout: 30000
+    });
+    return response.data;
+  } catch (error) {
+    if (error.response?.status === 404) {
+      throw new Error(`Workflow ${workflowId} not found in n8n`);
+    }
+    throw error;
+  }
+}
+
+/**
+ * Process automation data
+ */
+function processAutomation(data, logId) {
+  console.log('⚙️ Processing automation:', data);
+
+  // Example: Extract and transform data
+  const processed = {
+    id: logId,
+    originalData: data,
+    processedAt: new Date(),
+    transformations: {
+      dataCount: Object.keys(data).length,
+      hasTimestamp: !!data.timestamp,
+      status: 'processed'
+    }
+  };
+
+  // Store workflow state
+  if (data.workflowId) {
+    workflowStates[data.workflowId] = 'completed';
+  }
+
+  return processed;
+}
+
+// ============================================
+// ERROR HANDLING
+// ============================================
+app.use((err, req, res, next) => {
+  console.error('❌ Unhandled error:', err);
+  res.status(500).json({
+    success: false,
+    error: err.message
+  });
+});
+
+// ============================================
+// START SERVER
+// ============================================
+app.listen(PORT, () => {
+  console.log(`
+✅ n8n POC Server running on http://localhost:${PORT}
+`);
+  console.log('Available endpoints:');
+  console.log('  POST   /webhook/automation       - Receive n8n webhook data');
+  console.log('  POST   /api/trigger-workflow     - Trigger n8n workflow');
+  console.log('  GET    /api/logs                 - View automation logs');
+  console.log('  GET    /api/workflow-status/:id  - Check workflow status');
+  console.log('  GET    /health                   - Health check');
+  console.log('');
+});
+
+module.exports = app;

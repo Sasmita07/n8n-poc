@@ -1,1 +1,40 @@
-version: '3.8'\n\nservices:\n  n8n:\n    image: n8nio/n8n:latest\n    ports:\n      - "5678:5678"\n    environment:\n      - N8N_BASIC_AUTH_ACTIVE=false\n      - N8N_HOST=0.0.0.0\n      - N8N_PROTOCOL=http\n      - WEBHOOK_TUNNEL_URL=http://localhost:5678/\n    volumes:\n      - n8n_storage:/home/node/.n8n\n    networks:\n      - n8n-network\n\n  node_app:\n    build: .\n    ports:\n      - "3000:3000"\n    environment:\n      - N8N_URL=http://n8n:5678\n      - N8N_WEBHOOK_URL=http://node_app:3000/webhook\n      - PORT=3000\n      - NODE_ENV=development\n    depends_on:\n      - n8n\n    networks:\n      - n8n-network\n    volumes:\n      - .:/app\n      - /app/node_modules\n\nvolumes:\n  n8n_storage:\n\nnetworks:\n  n8n-network:\n    driver: bridge\n
+version: '3.8'
+
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=false
+      - N8N_HOST=0.0.0.0
+      - N8N_PROTOCOL=http
+      - WEBHOOK_TUNNEL_URL=http://localhost:5678/
+    volumes:
+      - n8n_storage:/home/node/.n8n
+    networks:
+      - n8n-network
+
+  node_app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - N8N_URL=http://n8n:5678
+      - N8N_WEBHOOK_URL=http://node_app:3000/webhook
+      - PORT=3000
+      - NODE_ENV=development
+    depends_on:
+      - n8n
+    networks:
+      - n8n-network
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+volumes:
+  n8n_storage:
+
+networks:
+  n8n-network:
+    driver: bridge
