@@ -55,7 +55,7 @@ project/
 │   └── automationStore.js
 │
 ├── server.js
-├── app.js
+├── app.js (TBD)
 └── package.json
 ```
 
