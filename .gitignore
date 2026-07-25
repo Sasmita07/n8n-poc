@@ -27,3 +27,7 @@ logs/
 # Temp
 tmp/
 temp/
+
+# Build outputs
+dist/
+packages/frontend/dist/
