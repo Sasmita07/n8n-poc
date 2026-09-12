@@ -58,7 +58,7 @@ Example environment values:
 ```env
 N8N_SMTP_HOST=smtp.gmail.com
 N8N_SMTP_PORT=465
-N8N_SMTP_USER=sasmita.official07@gmail.com
+N8N_SMTP_USER=N8N_SMTP_USER
 N8N_SMTP_PASS=your-app-password
 N8N_SMTP_SENDER=noreply@example.com
 ```

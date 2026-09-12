@@ -113,20 +113,20 @@ If n8n supports JSON import, use this structure:
 
 ## Key Fields Mapping
 
-| Field | Source | Example |
-|-------|--------|---------|
-| `to` | Request body | `user@example.com` |
-| `subject` | Request body | `Workflow Notification` |
-| `body` | Request body | `Your workflow completed` |
-| `html` | Request body (optional) | `<h1>Notification</h1>` |
-| `cc` | Request body (optional) | `manager@example.com` |
-| `bcc` | Request body (optional) | `audit@example.com` |
+| Field     | Source                  | Example                   |
+| --------- | ----------------------- | ------------------------- |
+| `to`      | Request body            | `user@example.com`        |
+| `subject` | Request body            | `Workflow Notification`   |
+| `body`    | Request body            | `Your workflow completed` |
+| `html`    | Request body (optional) | `<h1>Notification</h1>`   |
+| `cc`      | Request body (optional) | `manager@example.com`     |
+| `bcc`     | Request body (optional) | `audit@example.com`       |
 
 ## SMTP Configuration (Optional)
 
 If using email providers like Gmail, SendGrid, etc., configure in n8n:
 
-1. Go to n8n Settings → Credentials
+1. Go to n8n Overview → Credentials
 2. Add email credential (Gmail, SendGrid, SMTP, etc.)
 3. In Send Email node, select the credential
 4. Map `fromEmail` to the configured sender
