@@ -9,6 +9,8 @@ export async function createWorkflowUsecase(payload: CreateWorkflowRequestDto) {
     workflowPayload.name = 'New workflow';
   }
 
+  delete workflowPayload.active;
+
   console.log('🛠️ Creating n8n workflow:', workflowPayload.name);
 
   const result = await createN8nWorkflow(workflowPayload);

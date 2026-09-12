@@ -8,6 +8,8 @@ yarn-error.log*
 .env
 .env.local
 .env.*.local
+packages/workflow-service/.env.development
+packages/workflow-service/.env.*.development
 
 # IDE
 .vscode/

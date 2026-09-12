@@ -67,3 +67,42 @@ The project comes with container support using Docker Compose:
    ```bash
    docker-compose down
    ```
+
+---
+
+## Phase 1: Email Notifications Setup
+
+To use email notifications via Phase 1 features, you **must**:
+
+1. **Start n8n** (either via Docker or standalone)
+2. **Create the `send-email` workflow** in n8n
+3. **Enable the workflow** (active status)
+
+For detailed instructions, see [Email Setup Guide](./email-setup.md).
+
+### Quick Start
+```bash
+# Start n8n
+docker-compose up
+
+# In another terminal, start the application
+npm run dev
+
+# Access dashboard at http://localhost:5173
+# Create a workflow and test email notifications
+```
+
+---
+
+## Verification Checklist
+
+- ✅ Node.js v18+ installed
+- ✅ npm and Docker installed
+- ✅ All dependencies installed (`npm install`)
+- ✅ `.env` file configured
+- ✅ n8n running on port 5678
+- ✅ Workflow service running on port 3000
+- ✅ Frontend accessible on port 5173
+- ✅ API Swagger docs at `http://localhost:3000/docs`
+
+For more details on specific features, refer to the [Architecture documentation](../architecture/overview.md).
