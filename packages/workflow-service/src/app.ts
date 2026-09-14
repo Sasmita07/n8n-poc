@@ -1,6 +1,7 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { swaggerUI } from '@hono/swagger-ui';
 import { loggerMiddleware } from './middlewares/logger.middleware';
+import { corsMiddleware } from './middlewares/cors.middleware';
 import { errorHandlerMiddleware } from './middlewares/error-handler.middleware';
 import { appConfig } from './config/app.config';
 import { workflowRouter } from './routers/workflow/workflow.router';
@@ -8,10 +9,13 @@ import { webhookRouter } from './routers/webhook/webhook.router';
 import { statesRouter } from './routers/states/states.router';
 import { logsRouter } from './routers/logs/logs.router';
 import { healthRouter } from './routers/health/health.router';
+import { emailRouter } from './routers/email/email.router';
+import { setupRouter } from './routers/setup/setup.router';
 
 export const app = new OpenAPIHono();
 
 // Global Middlewares
+app.use('*', corsMiddleware);
 app.use('*', loggerMiddleware);
 
 // Root Service Info Route
@@ -31,6 +35,8 @@ app.route('/', webhookRouter);
 app.route('/', statesRouter);
 app.route('/', logsRouter);
 app.route('/', healthRouter);
+app.route('/', emailRouter);
+app.route('/', setupRouter);
 
 // OpenAPI Spec Endpoint
 app.doc('/doc', {

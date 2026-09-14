@@ -7,12 +7,13 @@
   ],
   "scripts": {
     "dev": "concurrently \"npm run dev -w workflow-service\" \"npm run dev -w frontend\"",
-    "start": "concurrently \"npm start -w workflow-service\" \"npm start -w frontend\"",
+    "start": "concurrently \"npm run start -w workflow-service\" \"npm run start -w frontend\"",
     "workflow-service:dev": "npm run dev -w workflow-service",
     "workflow-service:start": "npm start -w workflow-service",
     "workflow-service:build": "npm run build -w workflow-service",
     "workflow-service:test": "npm test -w workflow-service",
     "frontend:dev": "npm run dev -w frontend",
+    "frontend:start": "npm start -w frontend",
     "frontend:build": "npm run build -w frontend",
     "test": "npm test -w workflow-service"
   },

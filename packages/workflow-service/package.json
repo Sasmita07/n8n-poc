@@ -4,8 +4,12 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js",
-    "test": "vitest run"
+    "start": "tsx src/index.ts",
+    "test": "vitest run --dir tests",
+    "setup": "tsx scripts/setup-workflows.ts",
+    "setup:email": "tsx scripts/setup-workflows.ts email",
+    "setup:webhook": "tsx scripts/setup-workflows.ts webhook",
+    "setup:scheduled": "tsx scripts/setup-workflows.ts scheduled"
   },
   "dependencies": {
     "@hono/node-server": "^2.0.8",
