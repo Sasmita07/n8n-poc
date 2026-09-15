@@ -24,4 +24,5 @@ export const envConfig = {
   n8nSmtpCredentialId: process.env.N8N_SMTP_CREDENTIAL_ID?.trim(),
   n8nSmtpCredentialName:
     process.env.N8N_SMTP_CREDENTIAL_NAME?.trim() || 'SMTP account',
+  n8nSmtpSender: process.env.N8N_SMTP_SENDER?.trim() || 'noreply@example.com',
 };

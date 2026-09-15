@@ -3,13 +3,14 @@
 This document contains visual diagrams mapping out the automation gateway architecture, execution workflows, and webhook lifecycles.
 
 ## Gateway Architecture
-The following diagram illustrates how the Express API behaves as an orchestrator between client applications and n8n:
+
+The following diagram illustrates how the Hono API behaves as an orchestrator between client applications and n8n:
 
 ```
                  Client Application
                          │
                          ▼
-                Express REST API
+                Hono REST API
                          │
          ┌───────────────┼───────────────┐
          ▼               ▼               ▼
@@ -28,13 +29,14 @@ The following diagram illustrates how the Express API behaves as an orchestrator
 ---
 
 ## Workflow Lifecycle
+
 The typical path from a client request down to log updates and state updates:
 
 ```
 Client Request
       │
       ▼
-Express API
+Hono API
       │
       ▼
 Validate Request
@@ -58,13 +60,14 @@ Return Response
 ---
 
 ## Example Webhook Integration Workflow
+
 Visualizing how dynamic webhook paths are caught and delegated to n8n:
 
 ```
 Webhook Event
     │
     ▼
-Node.js API Endpoint
+Hono API Endpoint
     │
     ▼
 Trigger n8n Workflow Webhook

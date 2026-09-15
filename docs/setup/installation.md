@@ -3,6 +3,7 @@
 This document describes how to configure, install, and run the n8n Automation Gateway POC locally, within Docker containers, or when running tests.
 
 ## Technology Stack
+
 - **Runtime**: Node.js (v18+)
 - **Package Manager**: npm workspaces
 - **Workflow Service framework**: Hono / @hono/zod-openapi (TypeScript)
@@ -12,7 +13,8 @@ This document describes how to configure, install, and run the n8n Automation Ga
 ---
 
 ## Environment Variables
-The workflow service relies on the following configurations (defined in `packages/workflow-service/.env` or `.env` inside containers):
+
+The workflow service relies on the following configuration values (typically set in `packages/workflow-service/.env` or a local `.env.development` file):
 
 ```ini
 # Application configuration
@@ -23,19 +25,28 @@ NODE_ENV=development
 N8N_URL=http://localhost:5678
 N8N_API_KEY=your_api_key
 N8N_WEBHOOK_URL=http://localhost:3000/webhook
+
+# SMTP-backed email workflow setup
+N8N_SMTP_CREDENTIAL_ID=your_n8n_smtp_credential_id
+N8N_SMTP_CREDENTIAL_NAME=SMTP account
+N8N_SMTP_SENDER=noreply@example.com
 ```
+
+The repository includes a ready-to-copy template at `packages/workflow-service/.env.example`.
 
 ---
 
 ## Local Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd n8n-poc
    ```
 
 2. **Install all monorepo dependencies** (runs root npm and configures workflow-service/frontend packages)
+
    ```bash
    npm install
    ```
@@ -52,13 +63,16 @@ N8N_WEBHOOK_URL=http://localhost:3000/webhook
 ---
 
 ## Docker Deployment
+
 The project comes with container support using Docker Compose:
 
 1. **Build and launch services** (n8n & Node app)
+
    ```bash
    docker-compose build
    docker-compose up -d
    ```
+
    This will set up:
    - **n8n service** running at `http://localhost:5678`
    - **Gateway node_app** running at `http://localhost:3000`
@@ -81,6 +95,7 @@ To use email notifications via Phase 1 features, you **must**:
 For detailed instructions, see [Email Setup Guide](./email-setup.md).
 
 ### Quick Start
+
 ```bash
 # Start n8n
 docker-compose up
