@@ -15,7 +15,7 @@ function removeActiveFlag<T extends Record<string, any>>(payload: T): T {
  * This creates a workflow that receives emails via webhook and sends them
  */
 export async function createEmailWorkflow() {
-  const senderEmail = process.env.N8N_SMTP_SENDER || 'noreply@example.com';
+  const senderEmail = envConfig.n8nSmtpSender || 'noreply@example.com';
 
   if (!envConfig.n8nSmtpCredentialId) {
     throw new Error(

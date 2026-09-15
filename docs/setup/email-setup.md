@@ -2,10 +2,10 @@
 
 ## Prerequisites
 
-You must have n8n running. If using Docker, ensure it's started:
+You must have n8n running. If using Docker, ensure it's started from the repo root:
 
 ```bash
-cd /Users/sas_vsCodeWorkspace/n8n-poc
+cd n8n-poc
 docker-compose up
 ```
 
@@ -13,14 +13,39 @@ This starts n8n on `http://localhost:5678` by default.
 
 ## Step 1: Verify Environment Variables
 
-Check `.env` file in `packages/workflow-service/.env`:
+The app supports a local workflow service env file such as `packages/workflow-service/.env` or `.env.development`. At minimum, configure the n8n URL and your SMTP credential reference:
 
 ```env
 N8N_URL=http://localhost:5678
-N8N_API_KEY=your_api_key  # Optional, remove if using n8n without API keys
+N8N_API_KEY=your_api_key
+N8N_SMTP_CREDENTIAL_ID=your_n8n_smtp_credential_id
+N8N_SMTP_CREDENTIAL_NAME=SMTP account
+N8N_SMTP_SENDER=noreply@example.com
 ```
 
-## Step 2: Create the Email Webhook Workflow in n8n
+The app also exposes a setup endpoint for this workflow, which is the recommended path for Phase 1:
+
+```bash
+curl -X POST http://localhost:3000/api/v1/setup/email-workflow
+```
+
+## Step 2: Create or Reuse the Email Workflow
+
+The recommended flow is to let the app create or reuse the `send-email` workflow automatically. If you want to build it manually in n8n instead, follow the fallback steps below.
+
+### Recommended app-based setup
+
+1. Start the workflow service:
+   ```bash
+   npm run dev
+   ```
+2. Call the setup endpoint:
+   ```bash
+   curl -X POST http://localhost:3000/api/v1/setup/email-workflow
+   ```
+3. The service reuses an existing active `send-email` workflow or creates a new one with the correct webhook path.
+
+### Manual n8n fallback
 
 1. Open n8n at `http://localhost:5678`
 2. Click **+ Workflow** to create a new one
@@ -38,11 +63,11 @@ N8N_API_KEY=your_api_key  # Optional, remove if using n8n without API keys
 
 - **Type**: `Send Email`
 - **Important**: this node requires SMTP credentials in n8n. If you see the error `Credentials for Send Email are not set`, configure an SMTP credential in n8n first.
-- **From Email**: Your email (or use SMTP configuration)
-- **To**: `{{ $json.to }}` (reference from webhook)
-- **Subject**: `{{ $json.subject }}`
-- **Text**: `{{ $json.body }}`
-- **HTML** (optional): `{{ $json.html }}`
+- **From Email**: Your sender address, supplied by `N8N_SMTP_SENDER`
+- **To**: `={{ String($json.body?.to ?? $json.to ?? '') }}`
+- **Subject**: `={{ $json.body?.subject ?? $json.subject }}`
+- **Text**: `={{ $json.body?.body ?? $json.body }}`
+- **HTML** (optional): `={{ $json.body?.html ?? $json.html }}`
 
 #### SMTP configuration
 
