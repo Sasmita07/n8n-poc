@@ -34,11 +34,20 @@ The application acts as an orchestration layer between client applications and a
 - Forward webhook requests to n8n
 - Support event-driven automation
 
+### Human-in-the-Loop Approvals
+
+- Create approval requests for expense, leave, purchase, or other workflow decisions
+- Start a configured n8n request workflow and send the reviewer an email
+- Store request, notification, and continuation lifecycle state
+- Dispatch approved or rejected decisions to a separate n8n continuation workflow
+- Expose `canContinue` only for approved requests; the decision webhook starts a separate n8n execution rather than resuming a suspended one
+- Prevent changing a completed decision and support retry when decision dispatch fails
+
 ### Monitoring
 
 - Execution logging
 - Workflow state tracking
-- States endpoints (`GET /api/v1/states` & `GET /api/v1/states/:type/:id`)
+- States endpoints (`GET /api/v1/states` & `GET /api/v1/states/:type/:id`) for workflow, webhook, and approval state
 - Health check endpoint
 
 ### Error Handling
@@ -87,6 +96,7 @@ This Proof of Concept currently demonstrates:
 - Workflow monitoring
 - Execution logging
 - State management
+- Approval request and decision management
 - Error handling
 
 ## Service Routes
@@ -98,8 +108,9 @@ The workflow service exposes these primary route groups:
 | `/api/v1/workflows`    | Create, list, retrieve, and activate n8n workflows               |
 | `/api/v1/setup/*`      | Create or reuse standard email, webhook, and scheduled workflows |
 | `/api/v1/emails`       | Send an email through n8n                                        |
+| `/api/v1/approvals`    | Create and resolve human approval requests                       |
 | `/webhook/:path`       | Forward incoming events to n8n                                   |
-| `/api/v1/states`       | Read workflow and webhook execution state                        |
+| `/api/v1/states`       | Read workflow, webhook, and approval state                       |
 | `/api/v1/logs`         | Read execution logs                                              |
 | `/health`              | Check service health                                             |
 | `/doc`                 | OpenAPI JSON specification                                       |
@@ -119,8 +130,17 @@ N8N_SMTP_SENDER=noreply@example.com
 
 The generated Send Email node uses n8n node version `2.1`, `operation: send`, and `emailFormat: both`. The webhook payload is mapped from `$json.body` with a fallback to top-level fields for direct webhook calls.
 
+## Approval Architecture
+
+The dashboard creates and reviews approval requests through the workflow service. The service stores a pending record, triggers the configured `approval-request` n8n webhook, and emails the approver using the existing email workflow. On decision, it records an immutable approved/rejected state and triggers a second `approval-decision` webhook. n8n branches on that event and runs the approved or rejected business path. These are separate n8n executions; the service does not resume a suspended execution.
+
+Configure the webhook paths with `N8N_APPROVAL_REQUEST_WEBHOOK_PATH` and `N8N_APPROVAL_DECISION_WEBHOOK_PATH`. The event payloads include a stable `approvalId` so downstream actions can be made idempotent.
+
 ## POC Limitations
 
 - Workflow records stored by the local automation store are in memory and are lost when the service restarts.
 - n8n remains responsible for credential storage, workflow execution, SMTP delivery, and scheduling.
 - Conditional branching is supported by passing n8n node definitions and connections; the gateway does not implement branching logic itself.
+- Approval state is currently held in the in-memory automation store and is lost when the service restarts.
+- Authentication/authorization is not implemented; approver identity in a decision payload is not proof of identity. Do not use this POC for sensitive approvals until authentication and role checks are added.
+- n8n request and decision webhook workflows must be created and activated separately; see [Workflow Setup via API](../setup/workflow-setup-api.md#approval-workflow-integration).

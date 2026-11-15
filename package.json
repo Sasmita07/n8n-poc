@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "concurrently \"npm run dev -w workflow-service\" \"npm run dev -w frontend\"",
     "start": "concurrently \"npm run start -w workflow-service\" \"npm run start -w frontend\"",
+    "build": "npm run workflow-service:build && npm run frontend:build",
     "workflow-service:dev": "npm run dev -w workflow-service",
     "workflow-service:start": "npm start -w workflow-service",
     "workflow-service:build": "npm run build -w workflow-service",

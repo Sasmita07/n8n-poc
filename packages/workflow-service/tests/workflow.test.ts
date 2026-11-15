@@ -62,7 +62,7 @@ describe('Workflow REST API Routes (/api/v1/workflows)', () => {
     expect(axios.post).toHaveBeenCalledWith(
       expect.stringContaining('/api/v1/workflows/wf-999/activate'),
       expect.anything(),
-      expect.anything()
+      expect.anything(),
     );
   });
 
@@ -84,6 +84,26 @@ describe('Workflow REST API Routes (/api/v1/workflows)', () => {
     expect(data.success).toBe(true);
     expect(data.total).toBe(2);
     expect(data.result).toHaveLength(2);
+  });
+
+  it('GET /api/v1/workflows - normalizes the paginated n8n workflow response', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({
+      data: {
+        data: [
+          { id: 'wf-3', name: 'Wrapped Workflow One', active: true },
+          { id: 'wf-4', name: 'Wrapped Workflow Two', active: false },
+        ],
+        nextCursor: null,
+      },
+    });
+
+    const res = await app.request('/api/v1/workflows');
+
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.total).toBe(2);
+    expect(data.result).toHaveLength(2);
+    expect(data.result[0].name).toBe('Wrapped Workflow One');
   });
 
   it('GET /api/v1/workflows/:workflowId - retrieves details of a specific workflow', async () => {

@@ -1,11 +1,11 @@
 import axios from 'axios';
 import { envConfig } from '../../config/env.config';
 
-function getN8nHeaders(useApiKey = true): Record<string, string> {
+function getN8nHeaders(): Record<string, string> {
   const key = envConfig.n8nApiKey?.trim();
   const headers: Record<string, string> = {};
 
-  if (key && useApiKey) {
+  if (key) {
     headers['X-N8N-API-KEY'] = key;
   }
 
@@ -31,30 +31,15 @@ function getN8nErrorMessage(error: any, fallback: string) {
   return fallback;
 }
 
-async function retryWithoutApiKeyIfUnauthorized<T>(
-  request: (headers: Record<string, string>) => Promise<T>,
-) {
-  try {
-    return await request(getN8nHeaders(true));
-  } catch (error: any) {
-    if (error?.response?.status === 401 && envConfig.n8nApiKey?.trim()) {
-      return await request(getN8nHeaders(false));
-    }
-    throw error;
-  }
-}
-
 export async function createN8nWorkflow(workflowPayload: any) {
   const url = `${envConfig.n8nUrl}/api/v1/workflows`;
 
   console.log(`Calling: ${url}`);
 
   try {
-    const response = await retryWithoutApiKeyIfUnauthorized(async (headers) => {
-      return axios.post(url, workflowPayload, {
-        headers,
-        timeout: 30000,
-      });
+    const response = await axios.post(url, workflowPayload, {
+      headers: getN8nHeaders(),
+      timeout: 30000,
     });
     return response.data;
   } catch (error: any) {
@@ -82,11 +67,9 @@ export async function activateN8nWorkflow(workflowId: string, data: any) {
   console.log(`🔄 Activating workflow: ${url}`);
 
   try {
-    const response = await retryWithoutApiKeyIfUnauthorized(async (headers) => {
-      return axios.post(url, data, {
-        headers,
-        timeout: 30000,
-      });
+    const response = await axios.post(url, data, {
+      headers: getN8nHeaders(),
+      timeout: 30000,
     });
     return response.data;
   } catch (error: any) {
@@ -117,14 +100,12 @@ export async function triggerN8nWebhook(
 
   console.log(`➡️ Forwarding ${method} event to ${url}`);
 
-  const response = await retryWithoutApiKeyIfUnauthorized(async (headers) => {
-    return axios.request({
-      method,
-      url,
-      data: method !== 'GET' ? data : undefined,
-      headers,
-      timeout: 30000,
-    });
+  const response = await axios.request({
+    method,
+    url,
+    data: method !== 'GET' ? data : undefined,
+    headers: getN8nHeaders(),
+    timeout: 30000,
   });
 
   return response.data;
@@ -136,11 +117,9 @@ export async function getN8nWorkflowDetails(workflowId: string) {
   console.log(`Calling: ${url}`);
 
   try {
-    const response = await retryWithoutApiKeyIfUnauthorized(async (headers) => {
-      return axios.get(url, {
-        headers,
-        timeout: 30000,
-      });
+    const response = await axios.get(url, {
+      headers: getN8nHeaders(),
+      timeout: 30000,
     });
     return response.data;
   } catch (error: any) {
@@ -157,11 +136,9 @@ export async function listN8nWorkflows() {
   console.log(`Calling: ${url}`);
 
   try {
-    const response = await retryWithoutApiKeyIfUnauthorized(async (headers) => {
-      return axios.get(url, {
-        headers,
-        timeout: 30000,
-      });
+    const response = await axios.get(url, {
+      headers: getN8nHeaders(),
+      timeout: 30000,
     });
     return response.data;
   } catch (error: any) {

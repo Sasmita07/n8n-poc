@@ -70,6 +70,56 @@ export function useWorkflowApi() {
     return response.json();
   };
 
+  const createApproval = async (approvalData) => {
+    const response = await fetch(`${baseUrl}/approvals`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(approvalData),
+    });
+    const data = await response.json();
+    if (!response.ok)
+      throw new Error(data.error || 'Failed to create approval request');
+    return data;
+  };
+
+  const getApprovals = async () => {
+    const response = await fetch(`${baseUrl}/states`);
+    const data = await response.json();
+    if (!response.ok)
+      throw new Error(data.error || 'Failed to fetch approval requests');
+    return Object.entries(data.states || {})
+      .filter(([key]) => key.startsWith('approval:'))
+      .map(([key, state]) => ({
+        ...state,
+        id: state.id || key.slice('approval:'.length),
+      }))
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt || b.updatedAt || 0) -
+          new Date(a.createdAt || a.updatedAt || 0),
+      );
+  };
+
+  const updateApprovalDecision = async (
+    approvalId,
+    decision,
+    approver,
+    reason,
+  ) => {
+    const response = await fetch(
+      `${baseUrl}/approvals/${encodeURIComponent(approvalId)}/decision`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ decision, approver, reason }),
+      },
+    );
+    const data = await response.json();
+    if (!response.ok)
+      throw new Error(data.error || 'Failed to record approval decision');
+    return data;
+  };
+
   return {
     createWorkflow,
     listWorkflows,
@@ -79,5 +129,8 @@ export function useWorkflowApi() {
     sendEmail,
     getStates,
     getState,
+    createApproval,
+    getApprovals,
+    updateApprovalDecision,
   };
 }

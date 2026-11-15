@@ -98,78 +98,68 @@ export function WorkflowForm({ onWorkflowCreated }) {
         {error && <div className="alert alert-error shadow-lg">{error}</div>}
         {successMessage && <div className="alert alert-success shadow-lg">{successMessage}</div>}
 
-        <form onSubmit={handleSubmit} className="form-control gap-4">
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-5 md:grid-cols-2">
           {/* Type Selection */}
-          <div>
-            <label className="label">
-              <span className="label-text">Type</span>
-            </label>
+          <label className="form-control w-full gap-2">
+            <span className="label-text font-medium">Type</span>
             <select
               value={workflowType}
               onChange={(e) => setWorkflowType(e.target.value)}
-              className="select select-bordered"
+              className="select select-bordered w-full"
             >
               <option value="webhook">Webhook Trigger</option>
               <option value="scheduled">Scheduled Trigger</option>
               <option value="email">Email Notification</option>
             </select>
-          </div>
+          </label>
 
           {/* Workflow Name */}
           {workflowType !== 'email' && (
-            <div>
-              <label className="label">
-                <span className="label-text">Workflow Name</span>
-              </label>
+            <label className="form-control w-full gap-2">
+              <span className="label-text font-medium">Workflow Name</span>
               <input
                 type="text"
                 placeholder="e.g., Send Daily Report"
                 value={workflowName}
                 onChange={(e) => setWorkflowName(e.target.value)}
-                className="input input-bordered"
+                className="input input-bordered w-full"
               />
-            </div>
+            </label>
           )}
 
           {/* Email Fields */}
           {workflowType === 'email' && (
             <>
-              <div>
-                <label className="label">
-                  <span className="label-text">Recipient Email</span>
-                </label>
+              <label className="form-control w-full gap-2">
+                <span className="label-text font-medium">Recipient Email</span>
                 <input
                   type="email"
                   placeholder="user@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="input input-bordered"
+                  className="input input-bordered w-full"
                   required
                 />
-              </div>
-              <div>
-                <label className="label">
-                  <span className="label-text">Subject</span>
-                </label>
+              </label>
+              <label className="form-control w-full gap-2">
+                <span className="label-text font-medium">Subject</span>
                 <input
                   type="text"
                   placeholder="Email subject"
                   value={emailSubject}
                   onChange={(e) => setEmailSubject(e.target.value)}
-                  className="input input-bordered"
+                  className="input input-bordered w-full"
                 />
-              </div>
-              <div>
-                <label className="label">
-                  <span className="label-text">Body</span>
-                </label>
+              </label>
+              <label className="form-control w-full gap-2 md:col-span-2">
+                <span className="label-text font-medium">Body</span>
                 <textarea
                   placeholder="Email body"
                   value={emailBody}
                   onChange={(e) => setEmailBody(e.target.value)}
-                  className="textarea textarea-bordered h-24"
+                  className="textarea textarea-bordered h-32 w-full resize-y"
                 />
-              </div>
+              </label>
             </>
           )}
 
@@ -177,7 +167,7 @@ export function WorkflowForm({ onWorkflowCreated }) {
           <button
             type="submit"
             disabled={loading}
-            className="btn btn-primary"
+            className="btn btn-primary w-full md:col-span-2 md:w-fit"
           >
             {loading ? '⏳ Processing...' : workflowType === 'email' ? '📧 Send Email' : '🚀 Create Workflow'}
           </button>

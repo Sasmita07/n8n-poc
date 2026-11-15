@@ -83,8 +83,8 @@ Example environment values:
 ```env
 N8N_SMTP_HOST=smtp.gmail.com
 N8N_SMTP_PORT=465
-N8N_SMTP_USER=N8N_SMTP_USER
-N8N_SMTP_PASS=your-app-password
+N8N_SMTP_USER=replace_with_your_smtp_username
+N8N_SMTP_PASS=replace_with_your_smtp_password
 N8N_SMTP_SENDER=noreply@example.com
 ```
 
@@ -180,4 +180,5 @@ After confirming emails work:
 
 1. Test scheduling workflows with cron triggers
 2. Test webhook triggers with conditional logic
-3. Explore Phase 2 features (human-in-the-loop, AI agents)
+3. Configure and test the Phase 2 approval flow using [Approval Workflow Integration](./workflow-setup-api.md#approval-workflow-integration)
+4. Explore future AI agent integrations
