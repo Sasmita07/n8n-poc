@@ -140,6 +140,42 @@ curl -X POST http://localhost:3000/api/v1/emails \
   }'
 ```
 
+## Approval Workflow Integration
+
+Phase 2 uses two active n8n webhook workflows. Configure their paths to match the workflow-service environment variables (defaults shown):
+
+```env
+N8N_APPROVAL_REQUEST_WEBHOOK_PATH=approval-request
+N8N_APPROVAL_DECISION_WEBHOOK_PATH=approval-decision
+```
+
+### Request workflow
+
+Create and activate an n8n workflow with a **Webhook** trigger configured for `POST /webhook/approval-request`. Set its response mode to respond immediately so the API can continue sending the approval email. Add request validation or preparation nodes as needed.
+
+The webhook receives an `approval.requested` event containing `approvalId`, `workflowId`, request `type`, requester and approver email addresses, subject, body, and creation timestamp.
+
+### Decision workflow
+
+Create and activate a second workflow with a **Webhook** trigger configured for `POST /webhook/approval-decision`. Add a **Switch** or **IF** node on the decision value (`{{$json.body.decision ?? $json.decision}}`) and connect:
+
+- `approved` to the actual approved business action(s)
+- `rejected` to rejection handling, such as notifying the requester or closing the request
+
+The webhook receives `event: approval.decision`, `approvalId`, `workflowId`, request type, requester, approver, decision, reason, and decision timestamp. Use `approvalId` as an idempotency key before creating external records or performing other non-repeatable actions.
+
+The decision workflow is a new n8n execution triggered by the decision event; this integration does not resume a previously suspended execution. If its webhook is unavailable, the dashboard displays a failed handoff and allows the same decision to be retried. Make the downstream work idempotent because a network failure can make the delivery outcome ambiguous.
+
+### End-to-end dashboard test
+
+1. Activate the email workflow and both approval webhook workflows.
+2. Start the workflow service and frontend.
+3. In the dashboard's **Approvals** tab, submit a test request using a monitored approver address.
+4. Confirm the request appears as pending and the approver receives the email.
+5. Approve or reject from the dashboard; confirm the decision workflow execution in n8n and the updated handoff status in the dashboard.
+
+> Approval records are in-memory and the POC does not authenticate dashboard users or prove the approver's identity. Use test data only until durable storage and authentication/authorization are implemented.
+
 ---
 
 ## What Gets Created

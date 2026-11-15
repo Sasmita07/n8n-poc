@@ -183,7 +183,7 @@ The setup endpoint is idempotent. It reuses an existing active `send-email` work
 
 ### Next Steps (Phase 2+)
 
-- Human-in-the-loop automation approvals
+- [x] Human-in-the-loop automation approval POC (see [Phase 2](./phase-2-human-in-the-loop-automation.md))
 - AI agent integration for intelligent workflow generation
 - Persistent database storage
 - Advanced scheduling and retries

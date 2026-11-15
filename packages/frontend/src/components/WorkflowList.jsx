@@ -14,7 +14,14 @@ export function WorkflowList({ refreshTrigger }) {
     setError('');
     try {
       const data = await listWorkflows();
-      setWorkflows(data.result || []);
+      const result = data.result;
+      setWorkflows(
+        Array.isArray(result)
+          ? result
+          : Array.isArray(result?.data)
+            ? result.data
+            : [],
+      );
     } catch (err) {
       setError(`Failed to fetch workflows: ${err.message}`);
       console.error(err);

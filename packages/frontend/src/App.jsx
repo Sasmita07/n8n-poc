@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { WorkflowForm } from './components/WorkflowForm';
 import { WorkflowList } from './components/WorkflowList';
 import { ExecutionLogs } from './components/ExecutionLogs';
+import { ApprovalDashboard } from './components/ApprovalDashboard';
 
 export default function App() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -20,7 +21,7 @@ export default function App() {
           <div className="text-3xl">⚡</div>
           <div>
             <h1 className="text-xl font-bold text-white">n8n Automation Gateway</h1>
-            <p className="text-[10px] text-slate-400 font-medium">Phase 1: Real Workflows</p>
+            <p className="text-[10px] text-slate-400 font-medium">Workflow orchestration · Human approvals</p>
           </div>
         </div>
         <div className="badge badge-info py-3.5 px-3.5 font-extrabold text-[10px] uppercase tracking-wider">
@@ -50,6 +51,12 @@ export default function App() {
           >
             📊 Execution Logs
           </button>
+          <button
+            className={`tab ${activeTab === 'approvals' ? 'tab-active' : ''}`}
+            onClick={() => setActiveTab('approvals')}
+          >
+            ✅ Approvals
+          </button>
         </div>
 
         {/* Tab Content */}
@@ -72,6 +79,12 @@ export default function App() {
           {activeTab === 'logs' && (
             <div className="lg:col-span-2">
               <ExecutionLogs />
+            </div>
+          )}
+
+          {activeTab === 'approvals' && (
+            <div className="lg:col-span-2">
+              <ApprovalDashboard />
             </div>
           )}
         </div>
