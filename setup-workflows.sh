@@ -13,15 +13,6 @@ echo "Creating all workflows..."
 curl -X POST http://localhost:3000/api/v1/setup/email-workflow \
   -H "Content-Type: application/json"
 
-# ============================================
-# OR CREATE INDIVIDUALLY
-# ============================================
-
-# 1. EMAIL WORKFLOW
-echo "Creating email workflow..."
-curl -X POST http://localhost:3000/api/v1/setup/email-workflow \
-  -H "Content-Type: application/json"
-
 # 2. WEBHOOK WORKFLOW
 echo "Creating webhook workflow..."
 curl -X POST http://localhost:3000/api/v1/setup/webhook-workflow \

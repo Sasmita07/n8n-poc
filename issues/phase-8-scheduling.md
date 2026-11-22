@@ -1,5 +1,9 @@
 # Issue: Phase 8 – Scheduling
 
+## Status
+
+🟡 **BASIC POC IMPLEMENTED** — The dashboard/setup API can create a recurring n8n Schedule Trigger with an interval. One-time delayed jobs, advanced cron management, and durable schedule administration are not implemented.
+
 ## Summary
 
 Enable scheduled workflow execution and recurring automation.
@@ -18,4 +22,4 @@ Enable scheduled workflow execution and recurring automation.
 
 ## Notes
 
-Scheduling is essential for time-based automation and repeated tasks.
+Scheduling is essential for time-based automation and repeated tasks. The existing setup creates a basic recurring workflow; see [Workflow Setup via API](../docs/setup/workflow-setup-api.md#setup-scheduled-workflow).

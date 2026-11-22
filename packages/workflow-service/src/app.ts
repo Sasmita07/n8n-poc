@@ -12,6 +12,7 @@ import { healthRouter } from './routers/health/health.router';
 import { emailRouter } from './routers/email/email.router';
 import { setupRouter } from './routers/setup/setup.router';
 import { approvalsRouter } from './routers/approvals/approvals.router';
+import { aiRouter } from './routers/ai/ai.router';
 
 export const app = new OpenAPIHono();
 
@@ -38,6 +39,7 @@ app.route('/', logsRouter);
 app.route('/', healthRouter);
 app.route('/', emailRouter);
 app.route('/', approvalsRouter);
+app.route('/', aiRouter);
 app.route('/', setupRouter);
 
 // OpenAPI Spec Endpoint

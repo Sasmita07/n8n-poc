@@ -3,14 +3,26 @@ import { WorkflowForm } from './components/WorkflowForm';
 import { WorkflowList } from './components/WorkflowList';
 import { ExecutionLogs } from './components/ExecutionLogs';
 import { ApprovalDashboard } from './components/ApprovalDashboard';
+import { AiAssistant } from './components/AiAssistant';
 
 export default function App() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [activeTab, setActiveTab] = useState('create');
+  const [approvalWorkflow, setApprovalWorkflow] = useState(null);
 
   const handleWorkflowCreated = () => {
     // Trigger refresh of workflow list
     setRefreshTrigger((prev) => prev + 1);
+  };
+
+  const handleApprovalCreated = () => {
+    setRefreshTrigger((prev) => prev + 1);
+    setActiveTab('approvals');
+  };
+
+  const handleRequestApproval = (workflow) => {
+    setApprovalWorkflow(workflow);
+    setActiveTab('approvals');
   };
 
   return (
@@ -21,38 +33,44 @@ export default function App() {
           <div className="text-3xl">⚡</div>
           <div>
             <h1 className="text-xl font-bold text-white">n8n Automation Gateway</h1>
-            <p className="text-[10px] text-slate-400 font-medium">Workflow orchestration · Human approvals</p>
+            <p className="text-[10px] text-slate-400 font-medium">Workflow orchestration · AI recommendations · Human approvals</p>
           </div>
         </div>
         <div className="badge badge-info py-3.5 px-3.5 font-extrabold text-[10px] uppercase tracking-wider">
-          🚀 Production Ready
+          🚀 POC · Phases 1–3
         </div>
       </header>
 
       {/* Main Content */}
       <main className="flex-grow max-w-7xl mx-auto w-full px-4 py-8">
         {/* Tab Navigation */}
-        <div className="tabs tabs-bordered mb-8 bg-base-200/50 rounded-lg p-2">
+        <div className="tabs tabs-bordered mb-8 rounded-lg border border-white/10 bg-[#151827] p-2">
           <button
-            className={`tab ${activeTab === 'create' ? 'tab-active' : ''}`}
+            className={`tab text-slate-400 hover:text-white ${activeTab === 'create' ? 'tab-active text-white' : ''}`}
             onClick={() => setActiveTab('create')}
           >
             ✨ Create Workflow
           </button>
           <button
-            className={`tab ${activeTab === 'list' ? 'tab-active' : ''}`}
+            className={`tab text-slate-400 hover:text-white ${activeTab === 'list' ? 'tab-active text-white' : ''}`}
             onClick={() => setActiveTab('list')}
           >
             📋 Workflows
           </button>
           <button
-            className={`tab ${activeTab === 'logs' ? 'tab-active' : ''}`}
+            className={`tab text-slate-400 hover:text-white ${activeTab === 'logs' ? 'tab-active text-white' : ''}`}
             onClick={() => setActiveTab('logs')}
           >
             📊 Execution Logs
           </button>
           <button
-            className={`tab ${activeTab === 'approvals' ? 'tab-active' : ''}`}
+            className={`tab text-slate-400 hover:text-white ${activeTab === 'ai' ? 'tab-active text-white' : ''}`}
+            onClick={() => setActiveTab('ai')}
+          >
+            🤖 AI Review
+          </button>
+          <button
+            className={`tab text-slate-400 hover:text-white ${activeTab === 'approvals' ? 'tab-active text-white' : ''}`}
             onClick={() => setActiveTab('approvals')}
           >
             ✅ Approvals
@@ -71,7 +89,10 @@ export default function App() {
           {/* Workflows List */}
           {activeTab === 'list' && (
             <div className="lg:col-span-2">
-              <WorkflowList refreshTrigger={refreshTrigger} />
+              <WorkflowList
+                refreshTrigger={refreshTrigger}
+                onRequestApproval={handleRequestApproval}
+              />
             </div>
           )}
 
@@ -82,9 +103,15 @@ export default function App() {
             </div>
           )}
 
+          {activeTab === 'ai' && (
+            <div className="lg:col-span-2">
+              <AiAssistant onApprovalCreated={handleApprovalCreated} />
+            </div>
+          )}
+
           {activeTab === 'approvals' && (
             <div className="lg:col-span-2">
-              <ApprovalDashboard />
+              <ApprovalDashboard initialWorkflow={approvalWorkflow} />
             </div>
           )}
         </div>
@@ -127,7 +154,7 @@ export default function App() {
 
       {/* Footer */}
       <footer className="bg-[#11131f] border-t border-white/5 text-center py-6 px-4 text-[10px] text-slate-500">
-        <p>&copy; 2026 n8n Orchestrator Monorepo | Phase 1: Real n8n Workflows | All rights reserved.</p>
+        <p>&copy; 2026 n8n Orchestrator Monorepo | Phases 1–3: Workflow, approval, and AI-assisted automation POC</p>
       </footer>
     </div>
   );

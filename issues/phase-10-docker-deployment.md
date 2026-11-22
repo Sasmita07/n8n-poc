@@ -1,5 +1,9 @@
 # Issue: Phase 10 – Docker Deployment
 
+## Status
+
+🟡 **LOCAL DEVELOPMENT ONLY** — Compose scaffolding starts n8n and the workflow service, but its n8n defaults disable authentication. Published ports are loopback-only. It is not a staging or production deployment; persistent production data services and hardened configuration remain unimplemented.
+
 ## Summary
 
 Containerize the application stack for reproducible deployment.
@@ -19,4 +23,4 @@ Containerize the application stack for reproducible deployment.
 
 ## Notes
 
-Containerization simplifies deployment and local environment setup.
+Containerization simplifies local environment setup. Do not expose the current Compose stack publicly; see the security warning in [Setup & Installation](../docs/setup/installation.md#docker-deployment).

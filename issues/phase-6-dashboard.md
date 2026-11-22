@@ -1,5 +1,9 @@
 # Issue: Phase 6 – Dashboard
 
+## Status
+
+✅ **POC DELIVERED** — The current dashboard includes workflow setup/listing, n8n execution summaries, AI Review, and Approvals. Authentication, durable audit history, and production operational controls remain follow-up work.
+
 ## Summary
 
 Build a dashboard for monitoring workflows, executions, and system health.
@@ -18,4 +22,4 @@ Build a dashboard for monitoring workflows, executions, and system health.
 
 ## Notes
 
-This phase delivers a user-facing interface for operational visibility and control.
+This phase delivers a user-facing POC interface for visibility and control. The logs view polls n8n's executions endpoint; it does not provide push-based real-time updates. See the [End-to-End Business Flow](../docs/architecture/end-to-end-business-flow.md).

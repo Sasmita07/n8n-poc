@@ -1,5 +1,9 @@
 # Issue: Phase 12 – Observability
 
+## Status
+
+⏭️ **PLANNED** — The POC exposes n8n execution summaries and application console logs, but does not include Prometheus metrics, Grafana dashboards, or a full observability stack.
+
 ## Summary
 
 Add observability tooling for metrics, logging, and dashboards.

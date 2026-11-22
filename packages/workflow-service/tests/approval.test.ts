@@ -22,6 +22,7 @@ describe('Approval workflow routes (/api/v1/approvals)', () => {
 
     const payload = {
       workflowId: 'wf-approval-1',
+      aiDecisionId: 'ai-decision-1',
       type: 'expense',
       requester: 'alice@example.com',
       approver: 'manager@example.com',
@@ -41,6 +42,7 @@ describe('Approval workflow routes (/api/v1/approvals)', () => {
     expect(data.success).toBe(true);
     expect(data.result.status).toBe('pending');
     expect(data.result.approver).toBe('manager@example.com');
+    expect(data.result.workflowId).toBe('wf-approval-1');
     expect(data.result.workflowStatus).toBe('started');
     expect(data.result.notificationStatus).toBe('sent');
     expect(axios.request).toHaveBeenCalledWith(
@@ -50,6 +52,7 @@ describe('Approval workflow routes (/api/v1/approvals)', () => {
           event: 'approval.requested',
           approvalId: data.result.id,
           workflowId: 'wf-approval-1',
+          aiDecisionId: 'ai-decision-1',
         }),
       }),
     );
@@ -76,6 +79,7 @@ describe('Approval workflow routes (/api/v1/approvals)', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         workflowId: 'wf-approval-2',
+        aiDecisionId: 'ai-decision-2',
         type: 'leave',
         requester: 'bob@example.com',
         approver: 'teamlead@example.com',
@@ -112,6 +116,8 @@ describe('Approval workflow routes (/api/v1/approvals)', () => {
         data: expect.objectContaining({
           event: 'approval.decision',
           decision: 'approved',
+          workflowId: 'wf-approval-2',
+          aiDecisionId: 'ai-decision-2',
         }),
       }),
     );
@@ -139,14 +145,20 @@ describe('Approval workflow routes (/api/v1/approvals)', () => {
     const decisionRequest = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ decision: 'approved', approver: 'ops@example.com' }),
+      body: JSON.stringify({
+        decision: 'approved',
+        approver: 'ops@example.com',
+      }),
     };
 
     const first = await app.request(decisionPath, decisionRequest);
     const duplicate = await app.request(decisionPath, decisionRequest);
     const changed = await app.request(decisionPath, {
       ...decisionRequest,
-      body: JSON.stringify({ decision: 'rejected', approver: 'ops@example.com' }),
+      body: JSON.stringify({
+        decision: 'rejected',
+        approver: 'ops@example.com',
+      }),
     });
 
     expect(first.status).toBe(200);
@@ -172,7 +184,9 @@ describe('Approval workflow routes (/api/v1/approvals)', () => {
       }),
     });
     const created = await createRes.json();
-    vi.mocked(axios.request).mockRejectedValueOnce(new Error('n8n unavailable'));
+    vi.mocked(axios.request).mockRejectedValueOnce(
+      new Error('n8n unavailable'),
+    );
 
     const decisionUrl = `/api/v1/approvals/${created.result.id}/decision`;
     const payload = {

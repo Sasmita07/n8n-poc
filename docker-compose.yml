@@ -2,7 +2,7 @@ services:
   n8n:
     image: n8nio/n8n:latest
     ports:
-      - "5678:5678"
+      - "127.0.0.1:5678:5678"
     environment:
       - N8N_BASIC_AUTH_ACTIVE=false
       - N8N_API_DISABLE_AUTH=true
@@ -10,14 +10,6 @@ services:
       - N8N_HOST=0.0.0.0
       - N8N_PROTOCOL=http
       - WEBHOOK_TUNNEL_URL=http://localhost:5678/
-      # SMTP
-      - N8N_EMAIL_MODE=smtp
-      - N8N_SMTP_HOST=${N8N_SMTP_HOST}
-      - N8N_SMTP_PORT=${N8N_SMTP_PORT}
-      - N8N_SMTP_USER=${N8N_SMTP_USER}
-      - N8N_SMTP_PASS=${N8N_SMTP_PASS}
-      - N8N_SMTP_SENDER=${N8N_SMTP_SENDER}
-      - N8N_SMTP_SSL=${N8N_SMTP_SSL}
     volumes:
       - n8n_storage:/home/node/.n8n
     networks:
@@ -26,12 +18,11 @@ services:
   node_app:
     build: .
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     env_file:
-      - ./packages/workflow-service/.development
+      - ./packages/workflow-service/.env.development
     environment:
       - N8N_URL=http://n8n:5678
-      - N8N_WEBHOOK_URL=http://node_app:3000/webhook
       - PORT=3000
       - NODE_ENV=development
     depends_on:

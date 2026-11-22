@@ -100,13 +100,14 @@ Build real n8n workflows and integrate them into the Node.js orchestration layer
 | ------ | ---------------- | ----------------------- |
 | POST   | `/api/v1/emails` | Send email notification |
 
-#### States & Logs
+#### Gateway State & n8n Execution History
 
-| Method   | Path                       | Description                   |
-| -------- | -------------------------- | ----------------------------- |
-| GET      | `/api/v1/states`           | Retrieve all execution states |
-| GET      | `/api/v1/states/:type/:id` | Get specific execution state  |
-| GET/POST | `/webhook/:path`           | Dynamic webhook endpoint      |
+| Method   | Path                       | Description                                |
+| -------- | -------------------------- | ------------------------------------------ |
+| GET      | `/api/v1/states`           | Retrieve in-memory gateway state           |
+| GET      | `/api/v1/states/:type/:id` | Get specific in-memory gateway state       |
+| GET      | `/api/v1/logs`             | Retrieve up to 100 n8n execution summaries |
+| GET/POST | `/webhook/:path`           | Dynamic webhook endpoint                   |
 
 ### Frontend Features
 
@@ -115,7 +116,7 @@ Build real n8n workflows and integrate them into the Node.js orchestration layer
    - Name your workflow
    - Submit to n8n
 
-2. **Email Notification Tab**
+2. **Send Email option in Create Workflow**
    - Specify recipient email(s)
    - Set subject and body
    - Send email via n8n
@@ -127,10 +128,10 @@ Build real n8n workflows and integrate them into the Node.js orchestration layer
    - Auto-refresh capability
 
 4. **Execution Logs Tab**
-   - Real-time monitoring of workflow executions
-   - Auto-refresh every 3 seconds
-   - Expandable log details (JSON view)
-   - Status badges (Success/Error/Running)
+   - Fetches execution summaries from n8n through `GET /api/v1/logs`
+   - Polls every 3 seconds; this is not push-based real-time monitoring
+   - Shows up to 100 recent executions without execution data (`includeData=false`)
+   - Gateway approval/webhook state is separate and is available through `/api/v1/states`
 
 ## Testing
 
@@ -181,13 +182,13 @@ The setup endpoint is idempotent. It reuses an existing active `send-email` work
 - [x] Confirm `/webhook/send-email` is reachable
 - [x] Trigger a real email through the app and verify delivery
 
-### Next Steps (Phase 2+)
+### Follow-up Work (Phase 2+)
 
-- [x] Human-in-the-loop automation approval POC (see [Phase 2](./phase-2-human-in-the-loop-automation.md))
-- AI agent integration for intelligent workflow generation
-- Persistent database storage
-- Advanced scheduling and retries
-- Real-time WebSocket monitoring
+- [x] Human approval POC (see [Phase 2](./phase-2-human-in-the-loop-automation.md))
+- [x] Advisory AI triage with a human approval handoff (see [Phase 3](./phase-3-ai-agentic-workflows.md)); this does not generate workflows or authorize actions
+- Persistent database storage (Phase 4)
+- Authentication and verified approver identity (Phase 5)
+- Push-based WebSocket/SSE monitoring (Phase 7)
 
 ## Related Documentation
 

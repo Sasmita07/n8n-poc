@@ -5,6 +5,7 @@ export interface StateModel {
   error?: string;
   updatedAt?: Date | string;
   workflowId?: string;
+  aiDecisionId?: string;
   type?: string;
   requester?: string;
   approver?: string;
@@ -19,6 +20,9 @@ export interface StateModel {
   notificationStatus?: string;
   continuationStatus?: string;
   continuationError?: string;
+  recommendation?: string;
+  riskLevel?: string;
+  dispatchStatus?: string;
 }
 
 export type WorkflowStateModel = StateModel;
