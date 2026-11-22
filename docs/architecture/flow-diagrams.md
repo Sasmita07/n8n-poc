@@ -140,7 +140,7 @@ sequenceDiagram
     API->>Store: Store status and route metadata only
     API->>N8N: POST /webhook/ai-decision (ai.decision)
     N8N->>N8N: Branch on recommendation and risk
-    API-->>UI: Recommendation; humanReviewRequired=true
+    API-->>UI: Recommendation, humanReviewRequired true
     UI->>API: POST /api/v1/approvals
     API->>N8N: POST /webhook/approval-request
     API->>N8N: POST /webhook/send-email
