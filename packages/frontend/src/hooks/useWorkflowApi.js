@@ -48,6 +48,30 @@ export function useWorkflowApi() {
     return response.json();
   };
 
+  const setupWebhookWorkflow = async (name) => {
+    const response = await fetch(`${baseUrl}/setup/webhook-workflow`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name }),
+    });
+    const data = await response.json();
+    if (!response.ok)
+      throw new Error(data.error || 'Failed to create webhook workflow');
+    return data;
+  };
+
+  const setupScheduledWorkflow = async (name, intervalMinutes) => {
+    const response = await fetch(`${baseUrl}/setup/scheduled-workflow`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, intervalMinutes }),
+    });
+    const data = await response.json();
+    if (!response.ok)
+      throw new Error(data.error || 'Failed to create scheduled workflow');
+    return data;
+  };
+
   const sendEmail = async (emailData) => {
     const response = await fetch(`${baseUrl}/emails`, {
       method: 'POST',
@@ -120,17 +144,42 @@ export function useWorkflowApi() {
     return data;
   };
 
+  const analyzeAiDecision = async (decisionData) => {
+    const response = await fetch(`${baseUrl}/ai/decisions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(decisionData),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'AI analysis failed');
+    return data.result;
+  };
+
+  const retryAiDecision = async (decisionId) => {
+    const response = await fetch(
+      `${baseUrl}/ai/decisions/${encodeURIComponent(decisionId)}/retry`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' } },
+    );
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'AI handoff retry failed');
+    return data.result;
+  };
+
   return {
     createWorkflow,
     listWorkflows,
     getWorkflow,
     activateWorkflow,
     setupEmailWorkflow,
+    setupWebhookWorkflow,
+    setupScheduledWorkflow,
     sendEmail,
     getStates,
     getState,
     createApproval,
     getApprovals,
     updateApprovalDecision,
+    analyzeAiDecision,
+    retryAiDecision,
   };
 }

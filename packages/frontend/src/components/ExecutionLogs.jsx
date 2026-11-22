@@ -64,7 +64,7 @@ export function ExecutionLogs() {
 
   if (loading && states.length === 0) {
     return (
-      <div className="card bg-base-200 shadow-xl">
+      <div className="card app-card">
         <div className="card-body">
           <div className="skeleton h-12 w-full"></div>
           <div className="skeleton h-12 w-full"></div>
@@ -75,7 +75,7 @@ export function ExecutionLogs() {
   }
 
   return (
-    <div className="card bg-base-200 shadow-xl">
+    <div className="card app-card">
       <div className="card-body">
         <div className="flex justify-between items-center mb-4">
           <h2 className="card-title">Execution Logs</h2>
@@ -101,18 +101,22 @@ export function ExecutionLogs() {
             {states.map((state, index) => (
               <div
                 key={state.id || index}
-                className="border border-base-300 rounded-lg p-4 hover:bg-base-100 transition cursor-pointer"
+                className="app-panel cursor-pointer p-4 transition hover:border-white/20 hover:bg-white/[0.03]"
                 onClick={() => setExpandedId(expandedId === (state.id || index) ? null : state.id || index)}
               >
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <div className="flex gap-2 items-center mb-1">
-                      <span className="font-semibold text-white">{state.workflowId || 'Workflow'}</span>
+                      <span className="font-semibold text-white">
+                        {state.workflowName || state.workflowId || state.source || 'Workflow'}
+                      </span>
                       <span className={`badge badge-sm ${getStatusBadge(state.status)}`}>
-                        {state.status || 'Unknown'}
+                        {state.status || (state.finished ? 'success' : 'running')}
                       </span>
                     </div>
-                    <p className="text-sm text-slate-400">{formatDate(state.timestamp)}</p>
+                    <p className="text-sm text-slate-400">
+                      Execution {state.id || '—'} · {formatDate(state.startedAt || state.createdAt || state.timestamp)}
+                    </p>
                   </div>
                   <span className="text-xl">
                     {expandedId === (state.id || index) ? '▼' : '▶'}
@@ -120,8 +124,8 @@ export function ExecutionLogs() {
                 </div>
 
                 {expandedId === (state.id || index) && (
-                  <div className="mt-3 pt-3 border-t border-base-300">
-                    <div className="bg-black bg-opacity-30 rounded p-2 font-mono text-xs text-slate-300 overflow-x-auto max-h-64 overflow-y-auto">
+                  <div className="mt-3 border-t border-white/10 pt-3">
+                    <div className="app-panel max-h-64 overflow-x-auto overflow-y-auto p-2 font-mono text-xs text-slate-300">
                       <pre>{JSON.stringify(state.data || state, null, 2)}</pre>
                     </div>
                   </div>

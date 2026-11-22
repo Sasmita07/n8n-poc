@@ -7,6 +7,10 @@ export const createApprovalRequestSchema = z
       description:
         'Workflow or process that triggered the approval requirement',
     }),
+    aiDecisionId: z.string().min(1).optional().openapi({
+      example: '3a6ef6a1-f3c9-4bb5-b53e-52f32d22a25a',
+      description: 'Optional Phase 3 AI decision associated with this approval',
+    }),
     type: z.string().optional().openapi({
       example: 'expense',
       description: 'Approval type such as expense, leave, or purchase',

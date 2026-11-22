@@ -13,7 +13,7 @@ This starts n8n on `http://localhost:5678` by default.
 
 ## Step 1: Verify Environment Variables
 
-The app supports a local workflow service env file such as `packages/workflow-service/.env` or `.env.development`. At minimum, configure the n8n URL and your SMTP credential reference:
+For local development, configure `packages/workflow-service/.env.development` from `.env.example`. The generated n8n Send Email node requires an SMTP credential created in n8n; setting SMTP host/password variables in the workflow-service environment does not create that credential.
 
 ```env
 N8N_URL=http://localhost:5678
@@ -22,6 +22,8 @@ N8N_SMTP_CREDENTIAL_ID=your_n8n_smtp_credential_id
 N8N_SMTP_CREDENTIAL_NAME=SMTP account
 N8N_SMTP_SENDER=noreply@example.com
 ```
+
+Keep the SMTP credential secret in n8n. The workflow service only needs the credential's ID and display name to attach it to the generated node.
 
 The app also exposes a setup endpoint for this workflow, which is the recommended path for Phase 1:
 
@@ -43,7 +45,9 @@ The recommended flow is to let the app create or reuse the `send-email` workflow
    ```bash
    curl -X POST http://localhost:3000/api/v1/setup/email-workflow
    ```
-3. The service reuses an existing active `send-email` workflow or creates a new one with the correct webhook path.
+3. The service reuses an existing active `send-email` workflow or creates and activates one with a `POST` Webhook at `send-email`.
+
+This endpoint provisions the email workflow; it does not send a message. The dashboard's **Create Workflow → Send Email** action provisions/reuses the workflow and then sends the submitted email. Approval creation also calls this webhook to notify the approver.
 
 ### Manual n8n fallback
 
@@ -57,7 +61,7 @@ The recommended flow is to let the app create or reuse the `send-email` workflow
 - **Type**: `Webhook`
 - **Method**: `POST`
 - **Path**: `send-email`
-- **Authentication**: None (or use API key if configured)
+- **Response**: respond immediately or connect a Respond to Webhook node
 
 ### Node 2: Email Node
 
@@ -78,15 +82,9 @@ Before triggering the workflow, set up an SMTP credential in n8n:
 3. Fill in host, port, username, password, and sender
 4. Attach that credential to the `Send Email` node
 
-Example environment values:
+The generated workflow references the SMTP credential by `N8N_SMTP_CREDENTIAL_ID` and uses `N8N_SMTP_SENDER` as the sender address. For a manually configured n8n instance, create the credential in **Credentials** and select it on the Send Email node; do not copy SMTP passwords into this guide or source control. Compose-only `N8N_SMTP_*` mailer settings, if used for n8n system mail, are separate from the node credential.
 
-```env
-N8N_SMTP_HOST=smtp.gmail.com
-N8N_SMTP_PORT=465
-N8N_SMTP_USER=replace_with_your_smtp_username
-N8N_SMTP_PASS=replace_with_your_smtp_password
-N8N_SMTP_SENDER=noreply@example.com
-```
+The generated node maps `to`, `subject`, `body`, and optional HTML/CC/BCC/reply-to fields from the webhook payload. See [Email Workflow Architecture](../architecture/email-workflow.md) for the current generated node behavior.
 
 ### Node 3: Respond to Webhook
 
@@ -120,7 +118,7 @@ npm run dev
 ```
 
 2. Go to `http://localhost:5173`
-3. Select **Email Notification** type
+3. Open **Create Workflow** and select **Send Email**
 4. Enter:
    - **Recipient Email**: test@example.com
    - **Subject**: Test Email
@@ -145,9 +143,9 @@ npm run dev
 - In n8n, configure SMTP settings or use Send Email node defaults
 - Ensure the Send Email node has proper credentials
 
-### Frontend shows 404 on OPTIONS request
+### Frontend shows an OPTIONS/CORS error
 
-- ✅ **FIXED**: CORS middleware now handles preflight requests
+- Confirm the workflow service is running and inspect its console for the preflight request.
 
 ## Testing Email API Directly
 

@@ -145,3 +145,17 @@ export async function listN8nWorkflows() {
     throw error;
   }
 }
+
+export async function listN8nExecutions(limit = 100) {
+  const url = `${envConfig.n8nUrl}/api/v1/executions`;
+
+  console.log(`Calling: ${url}`);
+
+  const response = await axios.get(url, {
+    headers: getN8nHeaders(),
+    params: { limit, includeData: false },
+    timeout: 30000,
+  });
+
+  return response.data;
+}

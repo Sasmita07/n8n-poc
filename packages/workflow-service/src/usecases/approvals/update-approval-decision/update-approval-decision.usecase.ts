@@ -7,10 +7,14 @@ import { envConfig } from '../../../config/env.config';
 import type { UpdateApprovalDecisionRequestDto } from '../../../types/dto/request/update-approval-decision-request.dto';
 import { ApprovalError } from '../approval-error';
 
-function toApprovalResult(approvalId: string, state: ReturnType<typeof getState>) {
+function toApprovalResult(
+  approvalId: string,
+  state: ReturnType<typeof getState>,
+) {
   return {
     id: approvalId,
     workflowId: state.workflowId ?? '',
+    aiDecisionId: state.aiDecisionId,
     type: state.type ?? 'general',
     requester: state.requester ?? '',
     approver: state.approver ?? '',
@@ -41,21 +45,34 @@ export async function updateApprovalDecisionUsecase(
   if (decision !== 'approved' && decision !== 'rejected') {
     throw new ApprovalError('Decision must be approved or rejected', 400);
   }
-  const isRetry = current.status === decision && current.continuationStatus === 'failed';
+  const isRetry =
+    current.status === decision && current.continuationStatus === 'failed';
 
   if (current.status !== 'pending' && !isRetry) {
-    if (current.status === decision && current.continuationStatus === 'dispatched') {
+    if (
+      current.status === decision &&
+      current.continuationStatus === 'dispatched'
+    ) {
       return {
         success: true,
         message: 'This decision was already recorded and dispatched',
         result: toApprovalResult(approvalId, current),
       };
     }
-    throw new ApprovalError('A decision can only be recorded for a pending request', 409);
+    throw new ApprovalError(
+      'A decision can only be recorded for a pending request',
+      409,
+    );
   }
 
-  if (!payload.approver || payload.approver.toLowerCase() !== current.approver?.toLowerCase()) {
-    throw new ApprovalError('Decision approver does not match the assigned approver', 403);
+  if (
+    !payload.approver ||
+    payload.approver.toLowerCase() !== current.approver?.toLowerCase()
+  ) {
+    throw new ApprovalError(
+      'Decision approver does not match the assigned approver',
+      403,
+    );
   }
 
   const canContinue = decision === 'approved';
@@ -87,6 +104,7 @@ export async function updateApprovalDecisionUsecase(
       event: 'approval.decision',
       approvalId,
       workflowId: updated.workflowId,
+      aiDecisionId: updated.aiDecisionId,
       type: updated.type,
       requester: updated.requester,
       approver: updated.approver,
@@ -95,7 +113,8 @@ export async function updateApprovalDecisionUsecase(
       decidedAt: updated.decidedAt,
     });
   } catch (error: any) {
-    const continuationError = error?.message || 'Failed to dispatch decision to n8n';
+    const continuationError =
+      error?.message || 'Failed to dispatch decision to n8n';
     setState(stateKey, {
       continuationStatus: 'failed',
       continuationError,

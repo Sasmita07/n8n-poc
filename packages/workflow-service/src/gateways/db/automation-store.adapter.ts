@@ -1,6 +1,7 @@
 import type { LogModel } from '../../types/models/log.model';
 import type { StateModel } from '../../types/models/state.model';
 import type { WorkflowModel } from '../../types/models/workflow.model';
+import { resetAiDecisionEvents } from './ai-decision-store.adapter';
 
 const automationLogs: LogModel[] = [];
 const trackedStates: Record<string, StateModel> = {};
@@ -10,6 +11,7 @@ export function resetState(): void {
   automationLogs.length = 0;
   Object.keys(trackedStates).forEach((key) => delete trackedStates[key]);
   Object.keys(workflows).forEach((key) => delete workflows[key]);
+  resetAiDecisionEvents();
 }
 
 export function addLog(payload: any, source = 'unknown'): LogModel {
@@ -25,7 +27,10 @@ export function addLog(payload: any, source = 'unknown'): LogModel {
   return log;
 }
 
-export function updateLog(logId: number, updates: Partial<LogModel> = {}): LogModel | null {
+export function updateLog(
+  logId: number,
+  updates: Partial<LogModel> = {},
+): LogModel | null {
   const log = automationLogs.find((item) => item.id === logId);
 
   if (!log) {
@@ -43,7 +48,10 @@ export function getLogs(): LogModel[] {
   return automationLogs;
 }
 
-export function storeWorkflow(workflowId: string, workflowData: any): WorkflowModel {
+export function storeWorkflow(
+  workflowId: string,
+  workflowData: any,
+): WorkflowModel {
   workflows[workflowId] = {
     ...workflowData,
     storedAt: new Date(),

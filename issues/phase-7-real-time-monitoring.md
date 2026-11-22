@@ -1,5 +1,9 @@
 # Issue: Phase 7 – Real-Time Monitoring
 
+## Status
+
+⏭️ **PLANNED** — The dashboard currently polls up to 100 n8n execution summaries every three seconds. WebSocket/SSE push updates and system-health streaming are not implemented.
+
 ## Summary
 
 Add real-time monitoring capabilities for workflow execution and system health.
@@ -18,4 +22,4 @@ Add real-time monitoring capabilities for workflow execution and system health.
 
 ## Notes
 
-This phase enhances observability by delivering instant visibility into running workflows.
+This phase is intended to add instant visibility into running workflows; current polling is documented in [Execution Logs and State](../docs/architecture/flow-diagrams.md#execution-logs-and-state).

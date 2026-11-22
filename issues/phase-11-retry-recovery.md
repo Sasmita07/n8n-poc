@@ -1,5 +1,9 @@
 # Issue: Phase 11 – Retry & Recovery
 
+## Status
+
+🟡 **PARTIALLY IMPLEMENTED** — The dashboard can manually retry failed approval-decision and AI-event n8n handoffs. General automatic execution retries, request/email retry, alerting, and a dead-letter queue are not implemented.
+
 ## Summary
 
 Implement robust retry and failure recovery mechanisms for automation workflows.
@@ -18,4 +22,4 @@ Implement robust retry and failure recovery mechanisms for automation workflows.
 
 ## Notes
 
-This phase improves reliability by handling transient failures gracefully.
+This phase aims to improve reliability by handling transient failures. Current manual handoff retry behavior and partial-failure limitations are described in the [End-to-End Business Flow](../docs/architecture/end-to-end-business-flow.md#known-poc-limitations-and-failure-handling).

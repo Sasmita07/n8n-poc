@@ -28,10 +28,110 @@
 }
 
 body {
-  background-color: #090a0f;
+  background-color: #0f0f1e;
   background-image: 
     radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.03) 0%, transparent 40%),
     radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.03) 0%, transparent 40%);
   background-attachment: fixed;
   color: #f3f4f6;
+}
+
+.app-card {
+  color: #f8fafc;
+  background: #151827;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 1rem;
+  box-shadow: 0 18px 45px rgb(0 0 0 / 18%);
+}
+
+.app-panel {
+  background: #101321;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 0.875rem;
+}
+
+.app-control {
+  color: #f8fafc;
+  background: #0f1220;
+  border-color: rgb(255 255 255 / 16%);
+}
+
+.app-control::placeholder {
+  color: #64748b;
+}
+
+.app-control:focus {
+  border-color: #818cf8;
+  outline: 2px solid rgb(129 140 248 / 22%);
+  outline-offset: 1px;
+}
+
+.app-label {
+  color: #e2e8f0;
+}
+
+.app-field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.app-field > :is(input, select, textarea) {
+  width: 100%;
+}
+
+.app-table :is(th, td) {
+  color: #cbd5e1;
+  border-color: rgb(255 255 255 / 8%);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.app-table {
+  table-layout: fixed;
+}
+
+.app-table thead th {
+  color: #94a3b8;
+}
+
+.app-table tbody tr:hover {
+  background: rgb(255 255 255 / 4%);
+}
+
+.app-integration-badge {
+  display: inline-flex;
+  width: min(12.5rem, 100%);
+  min-height: 2.5rem;
+  color: #cbd5e1;
+  background: rgb(255 255 255 / 6%);
+  border: 1px solid rgb(255 255 255 / 12%);
+  white-space: normal;
+  text-align: center;
+  justify-content: center;
+  padding: 0.4rem 0.75rem;
+}
+
+.workflow-action-button {
+  width: min(12.5rem, 100%);
+  min-height: 2.5rem;
+  white-space: normal;
+}
+
+.workflow-actions {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.workflow-list-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 1rem;
 }

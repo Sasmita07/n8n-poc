@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useWorkflowApi } from '../hooks/useWorkflowApi';
+import { isSystemWorkflow } from '../lib/utils';
 
-export function WorkflowList({ refreshTrigger }) {
+export function WorkflowList({ refreshTrigger, onRequestApproval }) {
   const [workflows, setWorkflows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -49,7 +50,7 @@ export function WorkflowList({ refreshTrigger }) {
 
   if (loading) {
     return (
-      <div className="card bg-base-200 shadow-xl">
+      <div className="card app-card">
         <div className="card-body">
           <div className="skeleton h-12 w-full"></div>
           <div className="skeleton h-12 w-full"></div>
@@ -60,11 +61,16 @@ export function WorkflowList({ refreshTrigger }) {
   }
 
   return (
-    <div className="card bg-base-200 shadow-xl">
+    <div className="card app-card">
       <div className="card-body">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="card-title">Workflows</h2>
-          <button onClick={fetchWorkflows} className="btn btn-sm btn-outline">
+          <div className="workflow-list-header mb-4">
+          <div>
+            <h2 className="card-title">Workflows</h2>
+            <p className="mt-1 text-sm text-slate-400">
+              Integration workflows are listed for status but are not approval targets. Approval decisions are dispatched as events; they do not pause or resume a workflow.
+            </p>
+          </div>
+          <button onClick={fetchWorkflows} className="btn btn-sm btn-outline shrink-0 border-white/20 text-slate-200 hover:bg-white/10">
             🔄 Refresh
           </button>
         </div>
@@ -75,7 +81,13 @@ export function WorkflowList({ refreshTrigger }) {
           <p className="text-center text-slate-400 py-8">No workflows yet. Create one to get started!</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="table w-full">
+            <table className="table app-table w-full">
+              <colgroup>
+                <col className="w-[24%]" />
+                <col className="w-[30%]" />
+                <col className="w-[18%]" />
+                <col className="w-[28%]" />
+              </colgroup>
               <thead>
                 <tr>
                   <th>Name</th>
@@ -87,26 +99,35 @@ export function WorkflowList({ refreshTrigger }) {
               <tbody>
                 {workflows.map((workflow) => (
                   <tr key={workflow.id} className="hover">
-                    <td className="font-semibold">{workflow.name}</td>
-                    <td className="text-sm text-slate-400 font-mono">{workflow.id}</td>
+                    <td className="break-words font-semibold">{workflow.name}</td>
+                    <td className="break-all font-mono text-sm text-slate-400">{workflow.id}</td>
                     <td>
                       <span className={`badge ${workflow.active ? 'badge-success' : 'badge-warning'}`}>
                         {workflow.active ? '✅ Active' : '⏸ Inactive'}
                       </span>
                     </td>
                     <td>
+                      <div className="workflow-actions min-h-10">
                       {!workflow.active && (
                         <button
                           onClick={() => handleActivate(workflow.id)}
                           disabled={activatingId === workflow.id}
-                          className="btn btn-sm btn-primary"
+                          className="btn btn-sm btn-primary workflow-action-button"
                         >
                           {activatingId === workflow.id ? '⏳' : '▶'} Activate
                         </button>
                       )}
-                      {workflow.active && (
-                        <span className="text-sm text-slate-400">Running...</span>
-                      )}
+                      {isSystemWorkflow(workflow) ? (
+                        <span className="badge app-integration-badge">Integration workflow</span>
+                      ) : !workflow.active ? null : onRequestApproval ? (
+                        <button
+                          onClick={() => onRequestApproval(workflow)}
+                          className="btn btn-sm btn-secondary workflow-action-button"
+                        >
+                          Create linked approval
+                        </button>
+                      ) : null}
+                      </div>
                     </td>
                   </tr>
                 ))}

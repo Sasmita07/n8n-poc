@@ -6,7 +6,7 @@ Add approval and human decision steps to workflows for human-in-the-loop automat
 
 ## Status
 
-✅ POC FLOW COMPLETE - The dashboard creates/reviews requests, the service starts configured n8n request and decision workflows, and failures/decision state are visible. Durable storage and authenticated approver identity remain follow-up work.
+✅ POC FLOW COMPLETE - The dashboard creates/reviews requests, the service dispatches configured n8n request and decision events, and decision handoff state is visible. The selected workflow ID is correlation metadata, not an automatic pause/resume gate. Durable storage, request/email retry, and authenticated approver identity remain follow-up work.
 
 ## Goals
 
@@ -15,7 +15,7 @@ Add approval and human decision steps to workflows for human-in-the-loop automat
 - ✅ Capture pending, approved, and rejected decision states
 - ✅ Provide dashboard controls to create, view, approve, and reject requests
 - ✅ Expose a continuation gate that is true only after approval
-- ✅ Trigger n8n on request creation and decision so business actions run in the corresponding event workflow
+- ✅ Dispatch request and decision events to separately configured n8n workflows; downstream business actions must be configured there
 - ✅ Prevent decision changes after resolution and allow retrying a failed n8n handoff
 
 ## Acceptance Criteria
@@ -33,13 +33,13 @@ Add approval and human decision steps to workflows for human-in-the-loop automat
 - Decision endpoint updates status and canContinue flag based on approval result
 - GET /api/v1/approvals/:id returns the current approval record and decision state
 
-### ✅ Workflow continuation is gated on approval
+### ✅ Approval decision state is captured and dispatched
 
 - Decision payload accepts approved or rejected
-- Approved requests set canContinue=true
-- Rejected or missing decisions remain blocked until approved
+- Approved requests set `canContinue=true` as a state flag; it does not itself execute or resume a business workflow
+- Rejected requests set `canContinue=false`
 - The dashboard only enables decisions for pending requests
-- Decision event: an `approval.decision` event is sent to the configured n8n decision workflow
+- Decision event: an `approval.decision` event is sent to the configured n8n decision workflow, which must be configured to perform downstream actions
 - Failed decision dispatch is surfaced and can be retried by resubmitting the same decision
 - Repeating an already-dispatched identical decision does not dispatch the downstream event again
 
@@ -57,6 +57,7 @@ Add approval and human decision steps to workflows for human-in-the-loop automat
 - New approval use cases for create, read, and decision update flows
 - State persistence added to the shared automation store for approvals
 - Email notification triggered when an approval request is created
+- The email is a notification, not an action link; decisions are made in the dashboard
 - Request and decision webhook paths are configurable using `N8N_APPROVAL_REQUEST_WEBHOOK_PATH` and `N8N_APPROVAL_DECISION_WEBHOOK_PATH`
 - Dashboard surfaces request/notification/continuation handoff state and supports continuation retry
 - Frontend ApprovalDashboard provides the Phase 2 user interface
@@ -74,13 +75,14 @@ Add approval and human decision steps to workflows for human-in-the-loop automat
 - `approval.requested`: delivered to the configured request webhook when a dashboard request is submitted
 - `approval.decision`: delivered to the configured decision webhook after the assigned approver records an outcome
 - Both events include the stable `approvalId`; n8n side effects should be idempotent on this identifier
+- The selected `workflowId` is carried as a correlation reference. The approval flow does not pause, resume, or automatically execute that selected business workflow.
 - The decision webhook should branch to approved business actions or rejection handling
 
 ### Approval states
 
 - pending: created and awaiting human review
-- approved: decision recorded and workflow may continue
-- rejected: decision recorded and continuation remains blocked
+- approved: decision recorded and `canContinue=true`; the downstream decision workflow still has to perform the action
+- rejected: decision recorded and `canContinue=false`
 
 ## Verification
 
@@ -92,4 +94,4 @@ Focused regression coverage for Phase 2 was added and passes:
 
 ## Notes
 
-This phase implements an event-driven request/decision business flow: the request and decision each start their own n8n execution. It does not resume a single suspended n8n execution. Approval state is in memory and will be lost on restart. The current POC does not authenticate approvers, enforce roles, or provide durable audit storage; do not use it for sensitive approvals until those gaps are addressed. Configure and activate both n8n webhook workflows as described in [Workflow Setup via API](../docs/setup/workflow-setup-api.md#approval-workflow-integration).
+This phase implements an event-driven request/decision flow: request and decision each start their own n8n execution. It does not resume a single suspended execution. If request-event delivery succeeds but email delivery fails, the request is marked failed; there is no dedicated retry for this partial failure. Approval state is in memory and will be lost on restart. The current POC does not authenticate approvers, enforce roles, or provide durable audit storage; `/api/v1/states` returns approval details including the request body. Do not use it for sensitive approvals or expose it publicly. Configure and activate the integration workflows as described in [Workflow Setup via API](../docs/setup/workflow-setup-api.md#approval-workflow-integration).

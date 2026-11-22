@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Check, Clock3, RefreshCw, Send, ShieldCheck, X } from 'lucide-react';
 import { useWorkflowApi } from '../hooks/useWorkflowApi';
+import { isSystemWorkflow } from '../lib/utils';
 
 const initialForm = {
   workflowId: '',
@@ -18,15 +19,16 @@ const statusStyles = {
   failed: 'badge-error',
 };
 
-export function ApprovalDashboard() {
+export function ApprovalDashboard({ initialWorkflow }) {
   const [form, setForm] = useState(initialForm);
   const [approvals, setApprovals] = useState([]);
+  const [workflows, setWorkflows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [activeDecision, setActiveDecision] = useState('');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
-  const { createApproval, getApprovals, updateApprovalDecision } = useWorkflowApi();
+  const { createApproval, getApprovals, updateApprovalDecision, listWorkflows } = useWorkflowApi();
 
   const refreshApprovals = useCallback(async () => {
     setLoading(true);
@@ -44,6 +46,38 @@ export function ApprovalDashboard() {
     refreshApprovals();
   }, [refreshApprovals]);
 
+  useEffect(() => {
+    let cancelled = false;
+    listWorkflows()
+      .then((data) => {
+        const result = data.result;
+        const items = Array.isArray(result)
+          ? result
+          : Array.isArray(result?.data)
+            ? result.data
+            : [];
+        const eligibleWorkflows = items.filter(
+          (workflow) => workflow.active && !isSystemWorkflow(workflow),
+        );
+        if (!cancelled) {
+          setWorkflows(eligibleWorkflows);
+          setForm((current) => ({
+            ...current,
+            workflowId:
+              (eligibleWorkflows.some((workflow) => workflow.id === initialWorkflow?.id)
+                ? initialWorkflow.id
+                : current.workflowId || eligibleWorkflows[0]?.id) || '',
+          }));
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) setError(`Unable to load workflows: ${err.message}`);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const handleChange = (event) => {
     const { name, value } = event.target;
     setForm((current) => ({ ...current, [name]: value }));
@@ -56,8 +90,13 @@ export function ApprovalDashboard() {
     setMessage('');
     try {
       const response = await createApproval(form);
-      setMessage(`Request ${response.result.id} was sent to ${response.result.approver}.`);
-      setForm(initialForm);
+      const linkedWorkflow = workflows.find(
+        (workflow) => workflow.id === form.workflowId,
+      );
+      setMessage(
+        `Request ${response.result.id} is linked to ${linkedWorkflow?.name || form.workflowId} and was sent to ${response.result.approver}.`,
+      );
+      setForm({ ...initialForm, workflowId: form.workflowId });
       await refreshApprovals();
     } catch (err) {
       setError(err.message || 'Unable to create approval request');
@@ -88,15 +127,15 @@ export function ApprovalDashboard() {
 
   return (
     <div className="space-y-6">
-      <section className="card border border-white/10 bg-[#151827] shadow-xl">
+      <section className="card app-card">
         <div className="card-body">
           <div className="flex items-start gap-3">
             <div className="rounded-xl bg-indigo-500/15 p-3 text-indigo-300">
               <ShieldCheck size={22} />
             </div>
             <div>
-              <h2 className="card-title">Create an approval request</h2>
-              <p className="text-sm text-slate-400">The approver receives an email through the configured n8n email workflow.</p>
+              <h2 className="card-title">Request approval for a workflow</h2>
+              <p className="text-sm text-slate-400">The approver receives an email. Approve/reject sends a decision event to the configured n8n decision workflow.</p>
             </div>
           </div>
 
@@ -104,36 +143,48 @@ export function ApprovalDashboard() {
           {message && <div role="status" className="alert alert-success">{message}</div>}
 
           <form onSubmit={handleCreate} className="mt-2 grid grid-cols-1 gap-4 md:grid-cols-2">
-            <label className="form-control gap-1">
-              <span className="label-text">Workflow / request ID</span>
-              <input name="workflowId" value={form.workflowId} onChange={handleChange} className="input input-bordered bg-[#0f1220]" placeholder="e.g. expense-review" required />
+            <label className="app-field">
+              <span className="label-text app-label">Created workflow</span>
+              <select name="workflowId" value={form.workflowId} onChange={handleChange} className="select select-bordered app-control" required>
+                <option value="" disabled>
+                  {workflows.length ? 'Select an active business workflow' : 'No active business workflows found'}
+                </option>
+                {workflows.map((workflow) => (
+                  <option key={workflow.id} value={workflow.id}>
+                    {workflow.name} ({workflow.id}){workflow.active ? '' : ' — inactive'}
+                  </option>
+                ))}
+              </select>
             </label>
-            <label className="form-control gap-1">
-              <span className="label-text">Request type</span>
-              <select name="type" value={form.type} onChange={handleChange} className="select select-bordered bg-[#0f1220]">
+            <label className="app-field">
+              <span className="label-text app-label">Request type</span>
+              <select name="type" value={form.type} onChange={handleChange} className="select select-bordered app-control">
                 <option value="expense">Expense</option>
                 <option value="leave">Leave</option>
                 <option value="purchase">Purchase</option>
                 <option value="general">General</option>
               </select>
             </label>
-            <label className="form-control gap-1">
-              <span className="label-text">Requester email</span>
-              <input name="requester" type="email" value={form.requester} onChange={handleChange} className="input input-bordered bg-[#0f1220]" placeholder="requester@example.com" required />
+            <label className="app-field">
+              <span className="label-text app-label">Requester email</span>
+              <input name="requester" type="email" value={form.requester} onChange={handleChange} className="input input-bordered app-control" placeholder="requester@example.com" required />
             </label>
-            <label className="form-control gap-1">
-              <span className="label-text">Approver email</span>
-              <input name="approver" type="email" value={form.approver} onChange={handleChange} className="input input-bordered bg-[#0f1220]" placeholder="approver@example.com" required />
+            <label className="app-field">
+              <span className="label-text app-label">Approver email</span>
+              <input name="approver" type="email" value={form.approver} onChange={handleChange} className="input input-bordered app-control" placeholder="approver@example.com" required />
             </label>
-            <label className="form-control gap-1 md:col-span-2">
-              <span className="label-text">Email subject</span>
-              <input name="subject" value={form.subject} onChange={handleChange} className="input input-bordered bg-[#0f1220]" placeholder="Approval required: expense request" required />
+            <label className="app-field md:col-span-2">
+              <span className="label-text app-label">Email subject</span>
+              <input name="subject" value={form.subject} onChange={handleChange} className="input input-bordered app-control" placeholder="Approval required: expense request" required />
             </label>
-            <label className="form-control gap-1 md:col-span-2">
-              <span className="label-text">Request details</span>
-              <textarea name="body" value={form.body} onChange={handleChange} className="textarea textarea-bordered min-h-28 bg-[#0f1220]" placeholder="Describe what needs to be reviewed..." required />
+            <label className="app-field md:col-span-2">
+              <span className="label-text app-label">Request details</span>
+              <textarea name="body" value={form.body} onChange={handleChange} className="textarea textarea-bordered app-control min-h-28" placeholder="Describe what needs to be reviewed..." required />
             </label>
             <div className="md:col-span-2">
+              <p className="mb-3 text-xs text-amber-200/80">
+                This POC links the request to a workflow ID. It does not pause or resume the selected workflow. Configure the separate approval-decision workflow to branch on the decision and perform the business action.
+              </p>
               <button type="submit" disabled={submitting} className="btn btn-primary gap-2">
                 <Send size={16} /> {submitting ? 'Sending request…' : 'Send for approval'}
               </button>
@@ -142,7 +193,7 @@ export function ApprovalDashboard() {
         </div>
       </section>
 
-      <section className="card border border-white/10 bg-[#151827] shadow-xl">
+      <section className="card app-card">
         <div className="card-body">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -164,7 +215,7 @@ export function ApprovalDashboard() {
           ) : (
             <div className="space-y-3">
               {approvals.map((approval) => (
-                <article key={approval.id} className="rounded-xl border border-white/10 bg-[#101321] p-4">
+                <article key={approval.id} className="app-panel p-4">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="mb-2 flex flex-wrap items-center gap-2">
@@ -175,7 +226,10 @@ export function ApprovalDashboard() {
                       <p className="whitespace-pre-wrap text-sm text-slate-300">{approval.body}</p>
                       <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-slate-400">
                         <span>Request: <span className="font-mono text-slate-300">{approval.id}</span></span>
-                        <span>Workflow: {approval.workflowId}</span>
+                        <span>
+                          Workflow: {workflows.find((workflow) => workflow.id === approval.workflowId)?.name || approval.workflowId}
+                        </span>
+                        {approval.aiDecisionId && <span>AI decision: {approval.aiDecisionId}</span>}
                         <span>From: {approval.requester}</span>
                         <span>Approver: {approval.approver}</span>
                       </div>

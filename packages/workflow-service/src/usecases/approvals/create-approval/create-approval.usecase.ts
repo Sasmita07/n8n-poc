@@ -24,6 +24,7 @@ export async function createApprovalUsecase(payload: CreateApprovalRequestDto) {
   const approval = {
     id: approvalId,
     workflowId: payload.workflowId,
+    aiDecisionId: payload.aiDecisionId,
     type: payload.type ?? 'general',
     requester: payload.requester,
     approver: payload.approver,
@@ -49,6 +50,7 @@ export async function createApprovalUsecase(payload: CreateApprovalRequestDto) {
       event: 'approval.requested',
       approvalId,
       workflowId: approval.workflowId,
+      aiDecisionId: approval.aiDecisionId,
       type: approval.type,
       requester: approval.requester,
       approver: approval.approver,
